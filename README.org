@@ -1,0 +1,79 @@
+#+title: An example JNI (JAVA JDK 12)
+
+* This is an example for JNI with JAVA JDK 12
+
+JAVA在10有一些轉變，比如：
+- 刪除了javah, 改用java -h <dir>
+
+可能在JAVA 10之後的版本都可以來測試，不過我只試過JAVA 12。
+
+本次練習主要參考：[[https://www.cnblogs.com/b3051/p/7484501.html][java中native的用法]] , 不過該篇文章應該是適用於JAVA 8或10以前的版本。
+
+* 依賴
+- Linux
+- gcc
+- JAVA JDK 12
+- make
+- 設定好的 /JAVA_HOME/  環境變數
+
+基本上其他環境可能夠運行，只是我寫的Makefile沒有那麼靈活。或許你也可以將gcc改爲clang。
+
+
+
+* 使用
+
+** 直接運行
+#+BEGIN_SRC sh :results output
+make run
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+javac -d output src/Main.java
+# javah -cp output -d src -jni Main # old version
+javac -h src -d output src/Main.java
+gcc -I/mnt/820CB65B0CB649C5/Linux/opt/java/jdk-12/include -I/mnt/820CB65B0CB649C5/Linux/opt/java/jdk-12/include/linux src/hello.c -o output/libhello.so --share -fPIC
+echo "Prepare to run program"
+Prepare to run program
+echo ""
+
+echo ""
+
+LD_LIBRARY_PATH=`pwd`/output java -cp output Main
+Hello World! jni
+#+end_example
+
+你最後應該會得到 =Hello World! jni= ，這個過程已經
+幫你編譯java, c,並設定LD_LIBRARY_PATH了。
+
+** 建構
+#+BEGIN_SRC sh :results output
+make
+#+END_SRC
+
+#+RESULTS:
+: mkdir output
+: javac -d output src/Main.java
+: # javah -cp output -d src -jni Main # old version
+: javac -h src -d output src/Main.java
+: gcc -I/mnt/820CB65B0CB649C5/Linux/opt/java/jdk-12/include -I/mnt/820CB65B0CB649C5/Linux/opt/java/jdk-12/include/linux src/hello.c -o output/libhello.so --share -fPIC
+
+** 運行JAVA
+請先建構完程式，然後輸入：
+#+BEGIN_SRC sh :results output :exports both
+LD_LIBRARY_PATH="./output" java -cp output Main
+#+END_SRC
+
+#+RESULTS:
+: Hello World! jni
+
+** 清理
+easy type:
+#+BEGIN_SRC sh :results output
+make clean
+#+END_SRC
+
+#+RESULTS:
+: rm -rf output/Main.class output/libhello.so
+: rm -f src/Main.h
+: rm -rf output
